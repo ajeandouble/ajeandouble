@@ -9,7 +9,9 @@
    1. [Notes](#icareclients-notes)
    2. [Registration process](#icareclients-registration)
    3. [Login process](#icareclients-login)
-   4. 
+   4. [Logout process](#icareclients-logout)
+   5. [Orders process](#icareclients-orders)
+   6. [App version check](#icareclients-appversion)
 
 ## API  <a name="apinotes"></a>
 
@@ -19,57 +21,65 @@
 
 dispatch someUserAction(payload)
 
-​	**call **apiCall(payload)
+&emsp;**call**apiCall(payload)
 
-​			get JWT from local storage
+&emsp;&emsp;get JWT from local storage
 
-​			add JWT token to HTTP headers
+&emsp;&emsp;add JWT token to HTTP headers
 
-​			send request to server
+&emsp;&emsp;send request to server
 
-​			**if response has an error status** axios throws error
+&emsp;&emsp;**if response has an error status** axios throws error
 
-​			**else**	
+&emsp;&emsp;**else**	
 
-​				return response
+&emsp;&emsp;&emsp;return response
 
-​			**catch err**
+&emsp;&emsp;**catch err**
 
-​				**if 401 Unauthorized** (session expired/invalid token etc.)
+&emsp;&emsp;&emsp;**if 401 Unauthorized** (session expired/invalid token etc.)
 
-​					toast Session Expired
+&emsp;&emsp;&emsp;&emsp;toast Session Expired
 
-​					clear localStoragen
+&emsp;&emsp;&emsp;&emsp;clear localStoragen
 
-​					go to /login
+&emsp;&emsp;&emsp;&emsp;go to /login
 
-​				**else**
+&emsp;&emsp;&emsp;**else**
 
-​					**throw err**	
+&emsp;&emsp;&emsp;&emsp;**throw err**	
 
-​	**// ..** **DO THINGS** .. (and dispatch things)
+​	&emsp;&emsp;**// ..** **DO THINGS** .. (and dispatch things)
 
-​	**catch err**
+&emsp;**catch err**
 
-​		**call ** handleApiError
+&emsp;&emsp;**call** handleApiError
 
-​			**if** error.response.data.body.message || error.message
+&emsp;&emsp;&emsp;**if** error.response.data.body.message || error.message
 
-​				toast message
+&emsp;&emsp;&emsp;&emsp;toast message
 
-​			**else**
+&emsp;&emsp;&emsp;**else**
 
-​			toast "Something went wrong"
+&emsp;&emsp;&emsp;&emsp;toast "Something went wrong"
+
+
 
 ### API Side
 
-​	clientRoutes.js →clientController.js (parses body and url params, check for error and set HTTP status accordingly)→clientService.js
+&nbsp;clientRoutes.js
+
+&emsp;validate token, check JOI Schema ( [JOI](https://joi.dev/api/))
+
+&emsp;&emsp;→clientController.js (parses body and url params, check for error and set HTTP status accordingly)
+
+&emsp;&emsp;&emsp;→clientService.js
 
 
 
 ### Cron jobs <a name="api-cron"></a>
 
-[Node-cron](#https://www.npmjs.com/package/node-cron) module is used in *src/helper/cronHelper.js* to trigger scheduled operations such as:
+[Node-cron](https://www.npmjs.com/package/node-cron) module is used in *src/helper/cronHelper.js* to trigger scheduled operations such as:
 
 - orderReminder: send reminder to the client for services yet to be provided
 - checkExpiredOrders: check for expired orders in orders collection. Cancel stripe payment intent. Set point to 0 for the order. Send email to client.
@@ -109,23 +119,23 @@ The processes usually use *__START* and *_END*  action types to save loading sta
 
 On **send OTP:**
 
-​	**signupPhone**
+&emsp;**signupPhone**
 
-​	userActionType.CLEAR_STATE			(clear local storage, remove token from state, isLoggedIn = false, logoutLoading = false)
+&emsp;&emsp;userActionType.CLEAR_STATE			(clear local storage, remove token from state, isLoggedIn = false, logoutLoading = false)
 
-​	orderActionType.CLEAR_STATE
+&emsp;&emsp;orderActionType.CLEAR_STATE
 
-​		**apiCall** /client/signup/phone
+&emsp;&emsp;**apiCall** /client/signup/phone
 
-​			(API) format number to international format with a preceding '+'
+&emsp;&emsp;(API) format number to international format with a preceding '+'
 
-​					check if non-deleted user exists
+&emsp;&emsp;&emsp;check if non-deleted user exists
 
-​					generate new OTP
+&emsp;&emsp;&emsp;generate new OTP
 
-​					if user exists and is in registration phase: resend OTP via twilio
+&emsp;&emsp;&emsp;if user exists and is in registration phase: resend OTP via twilio
 
-​					else send first OTP message
+&emsp;&emsp;&emsp;else send first OTP message
 
 
 
@@ -135,11 +145,11 @@ On **send OTP:**
 
 On **verify otp**
 
-​	UPDATE_SIGNUP_STATE (userState.signup['phoneOTP'] == otp)
+&emsp;UPDATE_SIGNUP_STATE (userState.signup['phoneOTP'] == otp)
 
 On **resending otp**
 
-​	apiCall /client/signupPhone
+&emsp;apiCall /client/signupPhone
 
 
 
@@ -151,19 +161,21 @@ The field doesn't exist in the signup state but it still gets updated.
 
 
 
+
+
 #### /register-mail	appRoutes.REGISTER_MAIL
 
 Update userState.signupState['email'] and ['password'] fields
 
 **API**:
 
-​	format mail
+&emsp;format mail
 
-​	save mail to db, ignore deleted users
+&emsp;save mail to db, ignore deleted users
 
-​	generate hash with bcrypt and save it to DB
+&emsp;generate hash with bcrypt and save it to DB
 
-​	send an OTP via mail
+&emsp;send an OTP via mail
 
 
 
@@ -175,17 +187,17 @@ Update userState.signupState['email'] and ['password'] fields
 
 userActionType.SIGNUP_STATE (update userState.signup fields →image, firstname, lastname etc.)
 
-​	**apiCall** (/signup/profile)
+&emsp;**apiCall** (/signup/profile)
 
-​		**signupProfileUpdate**
+&emsp;&emsp;**signupProfileUpdate**
 
-​				Create **stripe customer** → stripeHelper.createCustomer
+&emsp;&emsp;&emsp;Create **stripe customer** → stripeHelper.createCustomer
 
-​				generate user  token and save it to db
+&emsp;&emsp;&emsp;generate user  token and save it to db
 
-​				save infos to db
+&emsp;&emsp;&emsp;save infos to db
 
-​				send success mail
+&emsp;&emsp;&emsp;send success mail
 
 ​	
 
@@ -197,39 +209,39 @@ userActionType.SIGNUP_STATE (update userState.signup fields →image, firstname,
 
 ####  /login	appRoutes.LOGIN		LoginPage.jsx
 
-On **login**:
+&emsp;On **login**:
 
-​	userActionType.CLEAR_STATE			  (clear localStorage and JWT)
+&emsp;&emsp;userActionType.CLEAR_STATE			  (clear localStorage and JWT)
 
-​	orderActionType.CLEAR_STATE			(clear localStorage and JWT)
+&emsp;&emsp;orderActionType.CLEAR_STATE			(clear localStorage and JWT)
 
-​	userActionType.LOGIN_BEGINS
+&emsp;&emsp;userActionType.LOGIN_BEGINS
 
-​		**apiCall** /client/login 
+&emsp;&emsp;**apiCall** /client/login 
 
-​			(API) **if** client.accountStatus == "deleted"
+&emsp;&emsp;(API) **if** client.accountStatus == "deleted"
 
-​							throw Error if password invalid **throw** Error
+&emsp;&emsp;&emsp;throw Error if password invalid **throw** Error
 
-​							userActionType.LOGIN_FAILURE
+&emsp;&emsp;&emsp;userActionType.LOGIN_FAILURE
 
-​							toast
+&emsp;&emsp;&emsp;toast
 
-​					**else**
+&emsp;&emsp;**else**
 
-​							return JWT
+&emsp;&emsp;&emsp;return JWT
 
-​		...
+&emsp;&emsp;...
 
-​	**on success**
+&emsp;	**on success**
 
-​		userActionType.LOGIN_SUCCESS	(save token, loginLoading = false, isLoggedIn = true)
+​	&emsp;&emsp;	userActionType.LOGIN_SUCCESS	(save token, loginLoading = false, isLoggedIn = true)
 
-​		save JWT to local storage (used in AuthRoute.jsx to display authorized urls or go back to /home if not logged in)
+​	&emsp;&emsp;	save JWT to local storage (used in AuthRoute.jsx to display authorized urls or go back to /home if not logged in)
 
-​	**on failure**
+&emsp;**on failure**
 
-​		userActionType.LOGIN_FAILURE	(token = null, loginLoading = false, isLoggedIn = false)
+​	&emsp;&emsp;userActionType.LOGIN_FAILURE	(token = null, loginLoading = false, isLoggedIn = false)
 
 
 
@@ -242,8 +254,6 @@ On **login**:
 ​	**API** /logout
 
 ​		delete UserToken model
-
-​	
 
 ​	
 
@@ -307,15 +317,33 @@ RouteDetect.jsx
 
 
 
-#### *Note*:
-
-There is still a /menu url. Is it legacy or is it used somewhere? All links seem to redirect to /alerts.
+***Note:*** is still a /menu url. Is it legacy or is it used somewhere? All links seem to redirect to /alerts.
 
 
 
 ### Evolution
 
-Evolution progress is saved in 
+Evolution progresses are saved in *client_evolutions* and *provider_evolutions* collections.  The API entry points are implemented in their own *evolutionService.js* file.
+
+The points and rewards are distributed and saved in the DB in *providerService.s* and *clientService.js* API points after some actions are performed (e.g. an order is created).
+
+Some API points (e.g. *providerService.createOrder*) add the current points in *user* and *provider* collections with the new points and save the result.
+
+They also add a bonus on level up. Levels are defined in *commonHelper.getClientLevel*.
+
+
+
+#### /evolution
+
+&emsp;(API) call /evolution
+
+&emsp;&emsp;fetch evolution level details sorted by date
+
+&emsp;&emsp;
+
+***Note:*** the total XP is saved in *user* and *provider* collections. *getClientEvolution* and *getProviderEvolution* return sorted-by-date list of the different XPs progression milestones. When an API function adds an evolution document, it adds up the XP to the user/provider total point count??
+
+
 
 ### Tips
 
